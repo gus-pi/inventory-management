@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { StackProvider, StackTheme } from "@stackframe/stack";
-import { stackClientApp } from "../stack/client";
+import { StackProvider, StackTheme } from '@stackframe/stack';
+import { stackClientApp } from '../stack/client';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: 'nventory Management',
+    title: 'Inventory Management',
     description: 'Inventory Management created with next.js',
 };
 
@@ -26,9 +26,11 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}><StackProvider app={stackClientApp}><StackTheme>
-                {children}
-            </StackTheme></StackProvider></body>
+            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <StackProvider app={stackClientApp}>
+                    <StackTheme>{children}</StackTheme>
+                </StackProvider>
+            </body>
         </html>
     );
 }
