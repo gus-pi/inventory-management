@@ -1,19 +1,35 @@
 import DeleteProductButton from '../components/delete-button';
+import Pagination from '../components/pagination';
 import Sidebar from '../components/sidebar';
 import { deleteProduct } from '../lib/actions/products';
 import { getCurrentUser } from '../lib/auth';
 import { prisma } from '../lib/prisma';
 
-const InventoryPage = async ({ searchParams }: { searchParams: Promise<{ q?: string }> }) => {
+const InventoryPage = async ({
+    searchParams,
+}: {
+    searchParams: Promise<{ q?: string; page?: string }>;
+}) => {
     const user = await getCurrentUser();
     const userId = user.id;
 
     const params = await searchParams;
     const q = (params.q ?? '').trim();
+    const where = { userId, name: { contains: q, mode: 'insensitive' as const } };
+    const page = Math.max(1, Number(params.page ?? 1));
+    const pageSize = 5;
 
-    const allProducts = await prisma.product.findMany({
-        where: { userId, name: { contains: q, mode: 'insensitive' } },
-    });
+    const [totalCount, allProducts] = await Promise.all([
+        prisma.product.count({ where }),
+        prisma.product.findMany({
+            where: where,
+            orderBy: { createdAt: 'desc' },
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+        }),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -103,6 +119,16 @@ const InventoryPage = async ({ searchParams }: { searchParams: Promise<{ q?: str
                             </tbody>
                         </table>
                     </div>
+                    {totalPages > 1 && (
+                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <Pagination
+                                currentPage={page}
+                                totalPages={totalPages}
+                                baseUrl="/inventory"
+                                searchParams={{ q, pageSize: String(pageSize) }}
+                            />
+                        </div>
+                    )}
                 </div>
             </main>
         </div>
